@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager | Created by Faizan Ahmad</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.85);
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --muted-text: #94a3b8;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* -------------------------------------------------- */
+        /* BEAUTIFUL RUNNING BACKGROUND ANIMATION             */
+        /* -------------------------------------------------- */
+        .bg-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .bg-animation span {
+            position: absolute;
+            display: block;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(14, 165, 233, 0.05));
+            animation: floatOrbs 15s infinite linear;
+            filter: blur(40px);
+        }
+
+        .bg-animation span:nth-child(1) {
+            width: 350px;
+            height: 350px;
+            top: -10%;
+            left: -10%;
+            animation-duration: 18s;
+        }
+
+        .bg-animation span:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            bottom: -15%;
+            right: -10%;
+            animation-duration: 22s;
+            animation-direction: reverse;
+        }
+
+        .bg-animation span:nth-child(3) {
+            width: 250px;
+            height: 250px;
+            top: 40%;
+            left: 60%;
+            animation-duration: 12s;
+        }
+
+        @keyframes floatOrbs {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(50px, 40px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        /* -------------------------------------------------- */
+        /* MAIN CONTAINER & UI                                */
+        /* -------------------------------------------------- */
+        .todo-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            width: 100%;
+            max-width: 520px;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .todo-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .todo-header h1 {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Creator Watermark Tag */
+        .creator-badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-color);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-top: 6px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        .input-group button {
+            background: var(--accent-color);
+            color: #0f172a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .input-group button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 12px;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted-text);
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            color: var(--accent-color);
+        }
+
+        .task-list {
+            list-style: none;
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .task-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #334155;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .checkbox-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .task-item.completed .checkbox-icon {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: #ffffff;
+        }
+
+        .task-text {
+            font-size: 0.95rem;
+            word-break: break-word;
+            transition: color 0.3s ease;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: var(--muted-text);
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted-text);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .delete-btn:hover {
+            color: var(--danger-color);
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: var(--muted-text);
+            font-size: 0.9rem;
+            padding: 20px 0;
+        }
+
+        .stats-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #334155;
+            font-size: 0.85rem;
+            color: var(--muted-text);
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .clear-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* -------------------------------------------------- */
+        /* QUICK CONTACT FLOATING BAR (WHATSAPP & GMAIL)     */
+        /* -------------------------------------------------- */
+        .contact-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(56, 189, 248, 0.1);
+        }
+
+        .contact-icon-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid #334155;
+            transition: all 0.3s ease;
+        }
+
+        .contact-icon-btn.whatsapp:hover {
+            background: #25d366;
+            color: #fff;
+            border-color: #25d366;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+        }
+
+        .contact-icon-btn.gmail:hover {
+            background: #ea4335;
+            color: #fff;
+            border-color: #ea4335;
+            box-shadow: 0 4px 12px rgba(234, 67, 53, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated Background Running Orbs -->
+    <div class="bg-animation">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="todo-container">
+        <!-- Header & Creator Watermark -->
+        <div class="todo-header">
+            <h1><i class="fa-solid fa-list-check"></i> Task Manager</h1>
+            <div class="creator-badge"><i class="fa-solid fa-code"></i> Created by Faizan Ahmad</div>
+        </div>
+
+        <!-- Input Form -->
+        <form id="todo-form" class="input-group">
+            <input type="text" id="todo-input" placeholder="Enter a new task..." autocomplete="off" required>
+            <button type="submit"><i class="fa-solid fa-plus"></i> Add</button>
+        </form>
+
+        <!-- Filters -->
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+
+        <!-- Task List Container -->
+        <ul id="task-list" class="task-list"></ul>
+
+        <!-- Footer Stats -->
+        <div class="stats-footer">
+            <span id="tasks-count">0 tasks remaining</span>
+            <button id="clear-completed" class="clear-btn">Clear Completed</button>
+        </div>
+
+        <!-- Direct Contact Icons with Speed/Smooth Interaction -->
+        <div class="contact-bar">
+            <a href="https://wa.me/923489573662" target="_blank" class="contact-icon-btn whatsapp" title="Chat on WhatsApp">
+                <i class="fa-brands fa-whatsapp" style="font-size: 1.1rem;"></i> WhatsApp
+            </a>
+            <a href="mailto:faizanaahmad091@gmail.com" class="contact-icon-btn gmail" title="Send Email">
+                <i class="fa-solid fa-envelope" style="font-size: 1.1rem;"></i> Gmail
+            </a>
+        </div>
+    </div>
+
+    <!-- External JavaScript Logic -->
+    <script>
+        const todoForm = document.getElementById('todo-form');
+        const todoInput = document.getElementById('todo-input');
+        const taskList = document.getElementById('task-list');
+        const tasksCount = document.getElementById('tasks-count');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const clearCompletedBtn = document.getElementById('clear-completed');
+
+        let tasks = JSON.parse(localStorage.getItem('faizan_tasks_v2')) || [];
+        let currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTasks();
+        });
+
+        function saveTasksToStorage() {
+            localStorage.setItem('faizan_tasks_v2', JSON.stringify(tasks));
+        }
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+
+            const filteredTasks = tasks.filter(task => {
+                if (currentFilter === 'active') return !task.completed;
+                if (currentFilter === 'completed') return task.completed;
+                return true;
+            });
+
+            if (filteredTasks.length === 0) {
+                taskList.innerHTML = `<div class="empty-msg">No tasks found. Add your tasks above!</div>`;
+            } else {
+                filteredTasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.className = `task-item ${task.completed ? 'completed' : ''}`;
+
+                    li.innerHTML = `
+                        <div class="task-content" onclick="toggleTask('${task.id}')">
+                            <div class="checkbox-icon">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <span class="task-text">${escapeHTML(task.text)}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteTask('${task.id}')" title="Delete Task">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    `;
+
+                    taskList.appendChild(li);
+                });
+            }
+
+            updateStats();
+        }
+
+        todoForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = todoInput.value.trim();
+
+            if (text !== '') {
+                const newTask = {
+                    id: Date.now().toString(),
+                    text: text,
+                    completed: false
+                };
+
+                tasks.unshift(newTask);
+                saveTasksToStorage();
+                renderTasks();
+                todoInput.value = '';
+            }
+        });
+
+        function toggleTask(id) {
+            tasks = tasks.map(task => {
+                if (task.id === id) {
+                    return { ...task, completed: !task.completed };
+                }
+                return task;
+            });
+
+            saveTasksToStorage();
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(task => task.id !== id);
+            saveTasksToStorage();
+            renderTasks();
+        }
+
+        clearCompletedBtn.addEventListener('click', () => {
+            tasks = tasks.filter(task => !task.completed);
+            saveTasksToStorage();
+            renderTasks();
+        });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.getAttribute('data-filter');
+                renderTasks();
+            });
+        });
+
+        function updateStats() {
+            const activeTasksCount = tasks.filter(task => !task.completed).length;
+            tasksCount.textContent = `${activeTasksCount} task${activeTasksCount === 1 ? '' : 's'} remaining`;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>
